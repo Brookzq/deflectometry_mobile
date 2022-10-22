@@ -1,4 +1,4 @@
-package com.quanzhang.camera2SecretPictureTaker.services;
+package com.quanzhang.camera2TakerWithoutPreview.services;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -22,18 +22,15 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.provider.SyncStateContract;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.quanzhang.camera2SecretPictureTaker.activities.MainActivity;
-import com.quanzhang.camera2SecretPictureTaker.listeners.PictureCapturingListener;
-import com.quanzhang.camera2SecretPictureTaker.util.CameraUtils;
+import com.quanzhang.camera2TakerWithoutPreview.listeners.PictureCapturingListener;
+import com.quanzhang.camera2TakerWithoutPreview.util.CameraUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;

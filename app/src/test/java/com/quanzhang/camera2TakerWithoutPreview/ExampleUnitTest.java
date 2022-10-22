@@ -1,4 +1,4 @@
-package com.quanzhang.camera2SecretPictureTaker;
+package com.quanzhang.camera2TakerWithoutPreview;
 
 import org.junit.Test;
 

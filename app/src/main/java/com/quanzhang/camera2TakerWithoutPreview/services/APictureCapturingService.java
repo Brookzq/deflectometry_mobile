@@ -1,4 +1,4 @@
-package com.quanzhang.camera2SecretPictureTaker.services;
+package com.quanzhang.camera2TakerWithoutPreview.services;
 
 import android.app.Activity;
 import android.content.Context;
@@ -6,7 +6,7 @@ import android.hardware.camera2.CameraManager;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
-import com.quanzhang.camera2SecretPictureTaker.listeners.PictureCapturingListener;
+import com.quanzhang.camera2TakerWithoutPreview.listeners.PictureCapturingListener;
 
 /**
  * Abstract Picture Taking Service.

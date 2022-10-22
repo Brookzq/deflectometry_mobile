@@ -1,4 +1,4 @@
-package com.quanzhang.camera2SecretPictureTaker.listeners;
+package com.quanzhang.camera2TakerWithoutPreview.listeners;
 
 import java.util.TreeMap;
 

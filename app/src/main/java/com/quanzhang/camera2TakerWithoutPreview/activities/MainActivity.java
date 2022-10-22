@@ -1,4 +1,4 @@
-package com.quanzhang.camera2SecretPictureTaker.activities;
+package com.quanzhang.camera2TakerWithoutPreview.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -21,10 +21,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.quanzhang.camera2SecretPictureTaker.R;
-import com.quanzhang.camera2SecretPictureTaker.listeners.PictureCapturingListener;
-import com.quanzhang.camera2SecretPictureTaker.services.APictureCapturingService;
-import com.quanzhang.camera2SecretPictureTaker.services.PictureCapturingServiceImpl;
+import com.quanzhang.camera2TakerWithoutPreview.R;
+import com.quanzhang.camera2TakerWithoutPreview.listeners.PictureCapturingListener;
+import com.quanzhang.camera2TakerWithoutPreview.services.APictureCapturingService;
+import com.quanzhang.camera2TakerWithoutPreview.services.PictureCapturingServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;

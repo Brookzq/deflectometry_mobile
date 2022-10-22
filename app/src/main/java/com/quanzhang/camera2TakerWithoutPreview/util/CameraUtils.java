@@ -1,4 +1,4 @@
-package com.quanzhang.camera2SecretPictureTaker.util;
+package com.quanzhang.camera2TakerWithoutPreview.util;
 
 import android.hardware.camera2.params.RggbChannelVector;
 
