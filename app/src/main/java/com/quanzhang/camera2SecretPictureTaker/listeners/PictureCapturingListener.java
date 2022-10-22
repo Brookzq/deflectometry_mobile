@@ -1,11 +1,11 @@
-package com.hzitoun.camera2SecretPictureTaker.listeners;
+package com.quanzhang.camera2SecretPictureTaker.listeners;
 
 import java.util.TreeMap;
 
 /**
  * Picture capturing listener
  *
- * @author hzitoun (zitoun.hamed@gmail.com)
+ * @author quan zhang
  */
 public interface PictureCapturingListener {
 

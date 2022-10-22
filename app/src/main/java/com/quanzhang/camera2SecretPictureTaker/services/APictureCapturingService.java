@@ -1,4 +1,4 @@
-package com.hzitoun.camera2SecretPictureTaker.services;
+package com.quanzhang.camera2SecretPictureTaker.services;
 
 import android.app.Activity;
 import android.content.Context;
@@ -6,22 +6,34 @@ import android.hardware.camera2.CameraManager;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
-import com.hzitoun.camera2SecretPictureTaker.listeners.PictureCapturingListener;
+import com.quanzhang.camera2SecretPictureTaker.listeners.PictureCapturingListener;
 
 /**
  * Abstract Picture Taking Service.
  *
- * @author hzitoun (zitoun.hamed@gmail.com)
+ * @author quan zhang
  */
 public abstract class APictureCapturingService {
+
+    /**
+     * camera settings
+     */
+    protected String delayMills;
+    protected String exposureValue;
+    protected String iso;
+    protected String awb;
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
+//        ORIENTATIONS.append(Surface.ROTATION_0, 90);
+//        ORIENTATIONS.append(Surface.ROTATION_90, 0);
+//        ORIENTATIONS.append(Surface.ROTATION_180, 270);
+//        ORIENTATIONS.append(Surface.ROTATION_270, 180);
+        ORIENTATIONS.append(Surface.ROTATION_0, 0);
+        ORIENTATIONS.append(Surface.ROTATION_90, 90);
+        ORIENTATIONS.append(Surface.ROTATION_180, 180);
+        ORIENTATIONS.append(Surface.ROTATION_270, 270);
     }
 
     private final Activity activity;
@@ -44,7 +56,7 @@ public abstract class APictureCapturingService {
      */
     int getOrientation() {
         final int rotation = this.activity.getWindowManager().getDefaultDisplay().getRotation();
-        return ORIENTATIONS.get(rotation);
+        return ORIENTATIONS.get(180);
     }
 
 
@@ -54,4 +66,12 @@ public abstract class APictureCapturingService {
      * @param listener picture capturing listener
      */
     public abstract void startCapturing(final PictureCapturingListener listener);
+
+    public abstract void setDelayMills(String delayMills);
+
+    public abstract void setExposureValue(String exposureValue);
+
+    public abstract void setIso(String iso);
+
+    public abstract void setAwb(String awb);
 }

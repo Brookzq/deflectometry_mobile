@@ -3,4 +3,13 @@
     <string name="take_pic_btn_label">Take photos</string>
     <string name="front_picture">Front Camera Picture</string>
     <string name="back_picture">Back Camera Picture</string>
+    <string name="exposure_time">Exposure Time</string>
+    <string name="ISO">ISO</string>
+    <string name="white_balance">White Balance</string>
+    <string name="delay">Time Lapse</string>
+    <string name="choose_pictures">Choose Pictures</string>
+    <string name="exposure_time_ms">exposure time (MilliSeconds)</string>
+    <string name="white_balance_2">white balance</string>
+    <string name="how_long_to_delay">how long to delay</string>
+    <string name="iso2">ISO</string>
 </resources>

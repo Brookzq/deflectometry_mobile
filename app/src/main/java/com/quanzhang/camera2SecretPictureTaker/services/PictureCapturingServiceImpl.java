@@ -1,38 +1,50 @@
-package com.hzitoun.camera2SecretPictureTaker.services;
+package com.quanzhang.camera2SecretPictureTaker.services;
 
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import android.provider.MediaStore;
+import android.provider.SyncStateContract;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
-import com.hzitoun.camera2SecretPictureTaker.listeners.PictureCapturingListener;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.quanzhang.camera2SecretPictureTaker.activities.MainActivity;
+import com.quanzhang.camera2SecretPictureTaker.listeners.PictureCapturingListener;
+import com.quanzhang.camera2SecretPictureTaker.util.CameraUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -41,10 +53,10 @@ import java.util.UUID;
 
 
 /**
- * The aim of this service is to secretly take pictures (without preview or opening device's camera app)
- * from all available cameras using Android Camera 2 API
+ * The aim of this service is to take pictures without preview
+ * using camera2 API to implement
  *
- * @author hzitoun (zitoun.hamed@gmail.com)
+ * @author quan zhang
  */
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP) //NOTE: camera 2 api was added in API level 21
@@ -52,13 +64,16 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
 
     private static final String TAG = PictureCapturingServiceImpl.class.getSimpleName();
 
+    private int mSensorOrientation;
+    private int mFacing;
+
     private CameraDevice cameraDevice;
     private ImageReader imageReader;
     /***
      * camera ids queue.
      */
     private Queue<String> cameraIds;
-    
+
     private String currentCameraId;
     private boolean cameraClosed;
     /**
@@ -95,7 +110,8 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
         try {
             final String[] cameraIds = manager.getCameraIdList();
             if (cameraIds.length > 0) {
-                this.cameraIds.addAll(Arrays.asList(cameraIds));
+                final String[] cameraIdFrontCamera = new String[]{"1"};
+                this.cameraIds.addAll(Arrays.asList(cameraIdFrontCamera));
                 this.currentCameraId = this.cameraIds.poll();
                 openCamera();
             } else {
@@ -141,17 +157,21 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
         final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
         final byte[] bytes = new byte[buffer.capacity()];
         buffer.get(bytes);
-        saveImageToDisk(bytes);
+        Bitmap myBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+        saveImageToDisk(myBitmap);
         image.close();
     };
 
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
+
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
+
             cameraClosed = false;
             Log.d(TAG, "camera " + camera.getId() + " opened");
             cameraDevice = camera;
             Log.i(TAG, "Taking picture from camera " + camera.getId());
+
             //Take the picture after some delay. It may resolve getting a black dark photos.
             new Handler().postDelayed(() -> {
                 try {
@@ -159,7 +179,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
                 } catch (final CameraAccessException e) {
                     Log.e(TAG, " exception occurred while taking picture from " + currentCameraId, e);
                 }
-            }, 500);
+            }, Integer.parseInt(delayMills)); //5000
         }
 
         @Override
@@ -200,21 +220,44 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
             return;
         }
         final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
-        Size[] jpegSizes = null;
+
+        mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+        mFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+//        Size[] jpegSizes = null;
+        Size jpegSizes = null;
         StreamConfigurationMap streamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
         if (streamConfigurationMap != null) {
-            jpegSizes = streamConfigurationMap.getOutputSizes(ImageFormat.JPEG);
+//            jpegSizes = streamConfigurationMap.getOutputSizes(ImageFormat.JPEG);
+            jpegSizes = Collections.max(Arrays.asList(streamConfigurationMap.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
         }
-        final boolean jpegSizesNotEmpty = jpegSizes != null && 0 < jpegSizes.length;
-        int width = jpegSizesNotEmpty ? jpegSizes[0].getWidth() : 640;
-        int height = jpegSizesNotEmpty ? jpegSizes[0].getHeight() : 480;
-        final ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+//        final boolean jpegSizesNotEmpty = jpegSizes != null && 0 < jpegSizes.length;
+//        int width = jpegSizesNotEmpty ? jpegSizes[0].getWidth() : 640;
+//        int height = jpegSizesNotEmpty ? jpegSizes[0].getHeight() : 480;
+        final ImageReader reader = ImageReader.newInstance(jpegSizes.getWidth(), jpegSizes.getHeight(), ImageFormat.JPEG, 2);
         final List<Surface> outputSurfaces = new ArrayList<>();
         outputSurfaces.add(reader.getSurface());
+
         final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
         captureBuilder.addTarget(reader.getSurface());
-        captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-        captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation());
+
+//        captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+        captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+        captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+        captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+        captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, Long.valueOf(exposureValue + "000000")); // Milliseconds
+        captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, Integer.parseInt(iso)); // ISO
+
+        captureBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
+        // adjust color correction using seekbar's params
+        captureBuilder.set(CaptureRequest.COLOR_CORRECTION_MODE, CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX);
+        captureBuilder.set(CaptureRequest.COLOR_CORRECTION_GAINS, CameraUtils.colorTemperature(Integer.parseInt(awb)));
+
+//        captureBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+//        int testOri = getOrientation();
+//        int cameraOri = (360 - 90 + mSensorOrientation) % 360;
+//        captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, cameraOri);
+
+
         reader.setOnImageAvailableListener(onImageAvailableListener, null);
         cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
                     @Override
@@ -234,15 +277,43 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
     }
 
 
-    private void saveImageToDisk(final byte[] bytes) {
+    private void saveImageToDisk(final Bitmap bitmap) {
+
+        int w = bitmap.getWidth(), h = bitmap.getHeight();
+        int[] pixels = new int[w*h];
+        bitmap.getPixels(pixels,0,w,0,0,w,h);
+
+        byte[] rgb = CameraUtils.addBMP_RGB_888(pixels,w,h);
+        byte[] header = CameraUtils.addBMPImageHeader(rgb.length);
+        byte[] infos = CameraUtils.addBMPImageInfosHeader(w,h);
+
+        byte[] buffer = new byte[54 + rgb.length];
+        System.arraycopy(header,0,buffer,0,header.length);
+        System.arraycopy(infos,0,buffer,14,infos.length);
+        System.arraycopy(rgb,0,buffer,54,rgb.length);
+
         final String cameraId = this.cameraDevice == null ? UUID.randomUUID().toString() : this.cameraDevice.getId();
-        final File file = new File(Environment.getExternalStorageDirectory() + "/" + cameraId + "_pic.jpg");
-        try (final OutputStream output = new FileOutputStream(file)) {
-            output.write(bytes);
-            this.picturesTaken.put(file.getPath(), bytes);
+        File fileDir = new File(Environment.getExternalStorageDirectory(), "Pictures");
+        if (!fileDir.exists()) {
+            fileDir.mkdir();
+        }
+        String fileName = "IMG_" + System.currentTimeMillis() + ".bmp";
+//        String outputImage = fileDir.getAbsolutePath()+"/"+ cameraId + "_pic.bmp";
+        String outputImage = fileDir.getAbsolutePath() + "/" + fileName;
+        File outputImageFile = new File(fileDir.getAbsolutePath() + "/" + fileName);
+        try (final OutputStream output = new FileOutputStream(outputImageFile)) {
+            output.write(buffer);
+            this.picturesTaken.put(outputImage, buffer);
         } catch (final IOException e) {
             Log.e(TAG, "Exception occurred while saving picture to external storage ", e);
         }
+
+        try {
+            MediaStore.Images.Media.insertImage(this.context.getContentResolver(), outputImageFile.getAbsolutePath(), fileName, null);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        this.context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(outputImageFile.getPath()))));
     }
 
     private void takeAnotherPicture() {
@@ -262,5 +333,33 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
         }
     }
 
+    static class CompareSizesByArea implements Comparator<Size> {
 
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            // We cast here to ensure the multiplications won't overflow
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() - (long) rhs.getWidth() * rhs.getHeight());
+        }
+
+    }
+
+    @Override
+    public void setDelayMills(String delayMills) {
+        this.delayMills = delayMills;
+    }
+
+    @Override
+    public void setExposureValue(String exposureValue) {
+        this.exposureValue = exposureValue;
+    }
+
+    @Override
+    public void setIso(String iso) {
+        this.iso = iso;
+    }
+
+    @Override
+    public void setAwb(String awb) {
+        this.awb = awb;
+    }
 }

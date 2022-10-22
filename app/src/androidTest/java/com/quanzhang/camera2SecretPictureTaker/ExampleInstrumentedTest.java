@@ -1,4 +1,4 @@
-package com.hzitoun.camera2SecretPictureTaker;
+package com.quanzhang.camera2SecretPictureTaker;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
