@@ -87,33 +87,43 @@ public class MainActivity extends AppCompatActivity implements PictureCapturingL
         // trigger button onClick event
         btn.setOnClickListener(v -> {
 
-            pictureService.setExposureValue(exposureTimeEdit.getText().toString());
-            pictureService.setDelayMills(timeDelayEdit.getText().toString());
-            pictureService.setAwb(awbEdit.getText().toString());
-            pictureService.setIso(isoEdit.getText().toString());
+            if (exposureTimeEdit.getText().toString().equals("")) {
+                showToast("exposure time couldn't be empty");
+            } else if (timeDelayEdit.getText().toString().equals("")) {
+                showToast("time delay couldn't be empty");
+            } else if (awbEdit.getText().toString().equals("")) {
+                showToast("white balance couldn't be empty");
+            } else if (isoEdit.getText().toString().equals("")) {
+                showToast("ISO couldn't be empty");
+            } else {
+                pictureService.setExposureValue(exposureTimeEdit.getText().toString());
+                pictureService.setDelayMills(timeDelayEdit.getText().toString());
+                pictureService.setAwb(awbEdit.getText().toString());
+                pictureService.setIso(isoEdit.getText().toString());
 
-            // eliminate the effect of the top of phone
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-            WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
-            getWindow().setAttributes(lp);
+                // eliminate the effect of the top of phone
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+                WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+                getWindow().setAttributes(lp);
 
-            showToast("Starting capture!");
-            pictureService.startCapturing(this);
+                showToast("Starting capture!");
+                pictureService.startCapturing(this);
 
-            // hide all the components
-            btn.setVisibility(View.INVISIBLE);
-            choosePictures.setVisibility(View.INVISIBLE);
-            exposureTimeShow.setVisibility(View.INVISIBLE);
-            exposureTimeEdit.setVisibility(View.INVISIBLE);
-            isoEdit.setVisibility(View.INVISIBLE);
-            isoShow.setVisibility(View.INVISIBLE);
-            awbEdit.setVisibility(View.INVISIBLE);
-            awbShow.setVisibility(View.INVISIBLE);
-            timeDelayShow.setVisibility(View.INVISIBLE);
-            timeDelayEdit.setVisibility(View.INVISIBLE);
-            // set background to Signal image when taking pictures.
-            constraintLayout.setBackgroundResource(R.drawable.bg);
+                // hide all the components
+                btn.setVisibility(View.INVISIBLE);
+                choosePictures.setVisibility(View.INVISIBLE);
+                exposureTimeShow.setVisibility(View.INVISIBLE);
+                exposureTimeEdit.setVisibility(View.INVISIBLE);
+                isoEdit.setVisibility(View.INVISIBLE);
+                isoShow.setVisibility(View.INVISIBLE);
+                awbEdit.setVisibility(View.INVISIBLE);
+                awbShow.setVisibility(View.INVISIBLE);
+                timeDelayShow.setVisibility(View.INVISIBLE);
+                timeDelayEdit.setVisibility(View.INVISIBLE);
+                // set background to Signal image when taking pictures.
+                constraintLayout.setBackgroundResource(R.drawable.bg);
+            }
         });
 
         choosePictures.setOnClickListener(v -> {
